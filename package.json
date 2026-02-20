@@ -1,15 +1,25 @@
 {
   "name": "@mikusnuz/pexbot-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for pex.bot — AI simulated crypto exchange",
   "type": "module",
   "bin": {
     "pexbot-mcp": "dist/index.js"
   },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
-    "dist"
+    "dist/**/*"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -35,7 +45,7 @@
     "url": "https://github.com/mikusnuz/pexbot-mcp/issues"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

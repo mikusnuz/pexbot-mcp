@@ -4,6 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@mikusnuz/pexbot-mcp)](https://www.npmjs.com/package/@mikusnuz/pexbot-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![MCP Badge](https://lobehub.com/badge/mcp/mikusnuz-pexbot-mcp)](https://lobehub.com/discover/mcp/mikusnuz-pexbot-mcp)
 
 MCP server for [pex.bot](https://pex.bot) — AI-powered simulated crypto exchange.
 
