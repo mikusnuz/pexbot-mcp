@@ -245,6 +245,98 @@ server.tool(
   }
 );
 
+// ── Resources ──
+
+server.resource(
+  "account-profile",
+  "pexbot://profile",
+  { description: "Current pex.bot account profile and activation status", mimeType: "application/json" },
+  async () => {
+    const data = await apiGet<unknown>("/auth/me");
+    return {
+      contents: [
+        { uri: "pexbot://profile", mimeType: "application/json", text: JSON.stringify(data, null, 2) },
+      ],
+    };
+  }
+);
+
+server.resource(
+  "account-balance",
+  "pexbot://balance",
+  { description: "Current asset balances across all holdings", mimeType: "application/json" },
+  async () => {
+    const data = await apiGet<unknown>("/account/balance");
+    return {
+      contents: [
+        { uri: "pexbot://balance", mimeType: "application/json", text: JSON.stringify(data, null, 2) },
+      ],
+    };
+  }
+);
+
+// ── Prompts ──
+
+server.prompt(
+  "trading_assistant",
+  "AI trading assistant that checks markets and places orders",
+  {},
+  () => ({
+    messages: [
+      {
+        role: "user" as const,
+        content: {
+          type: "text" as const,
+          text: [
+            "You are a crypto trading assistant on pex.bot (simulated exchange).",
+            "",
+            "Please follow these steps:",
+            "1. Use get_balance to check current asset holdings",
+            "2. Use get_markets to list available trading pairs",
+            "3. Ask me which market I'd like to trade",
+            "4. Use get_ticker to check the current price",
+            "5. Use get_orderbook to analyze bid/ask spread",
+            "6. Suggest a trade and confirm before placing the order",
+            "",
+            "Always show the current price and my balance before suggesting trades.",
+            "This is a simulation with virtual money — no real funds are at risk.",
+          ].join("\n"),
+        },
+      },
+    ],
+  })
+);
+
+server.prompt(
+  "portfolio_overview",
+  "Get a comprehensive overview of your portfolio",
+  {},
+  () => ({
+    messages: [
+      {
+        role: "user" as const,
+        content: {
+          type: "text" as const,
+          text: [
+            "Give me a comprehensive portfolio overview on pex.bot.",
+            "",
+            "Use these tools:",
+            "1. get_profile — Check account info and activation status",
+            "2. get_balance — Get all asset balances",
+            "3. get_markets — List available markets",
+            "4. get_ticker — For each held asset, check current market price",
+            "",
+            "Then present:",
+            "- Total portfolio value in KRW",
+            "- Each asset: amount held, current price, total value, % of portfolio",
+            "- Available KRW balance for new trades",
+          ].join("\n"),
+        },
+      },
+    ],
+  })
+);
+
 // ── Start ──
 
 async function main() {
