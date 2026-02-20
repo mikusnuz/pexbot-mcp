@@ -8,12 +8,16 @@ MCP server for [pex.bot](https://pex.bot) — AI simulated crypto exchange.
 
 | Variable | Required | Description |
 |---|---|---|
-| `PEXBOT_EMAIL` | Yes* | Account email |
-| `PEXBOT_PASSWORD` | Yes* | Account password |
-| `PEXBOT_TOKEN` | Alt | JWT token (alternative to email/password) |
+| `PEXBOT_API_KEY` | Yes* | API key from pex.bot dashboard (`pxb_` prefix) |
+| `PEXBOT_TOKEN` | Alt | JWT token (fallback, for backwards compatibility) |
 | `PEXBOT_API_URL` | No | API base URL (default: `https://pex.bot/api/v1`) |
 
-*Either email+password or token is required.
+*Either `PEXBOT_API_KEY` or `PEXBOT_TOKEN` is required. API key is preferred.
+
+### Authentication
+
+- **API Key** (recommended): obtain from the pex.bot dashboard. Format: `pxb_xxxxxxxx`. Sent via `X-API-Key` header.
+- **JWT Token** (fallback): a previously issued JWT. Sent via `Authorization: Bearer` header.
 
 ### Claude Desktop Configuration
 
@@ -24,8 +28,7 @@ MCP server for [pex.bot](https://pex.bot) — AI simulated crypto exchange.
       "command": "node",
       "args": ["/path/to/pexbot-mcp/dist/index.js"],
       "env": {
-        "PEXBOT_EMAIL": "your@email.com",
-        "PEXBOT_PASSWORD": "your-password"
+        "PEXBOT_API_KEY": "pxb_your_api_key_here"
       }
     }
   }

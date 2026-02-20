@@ -7,7 +7,8 @@ import os from "node:os";
 
 const API_BASE = process.env.PEXBOT_API_URL || "https://pex.bot/api/v1";
 
-let authToken: string | null = process.env.PEXBOT_TOKEN || null;
+const API_KEY = process.env.PEXBOT_API_KEY || null;
+const JWT_TOKEN = process.env.PEXBOT_TOKEN || null;
 
 // ── Fingerprint collection ──
 
@@ -38,37 +39,21 @@ function getFingerprint() {
 
 // ── API helpers ──
 
-async function login(): Promise<string> {
-  const email = process.env.PEXBOT_EMAIL;
-  const password = process.env.PEXBOT_PASSWORD;
-  if (!email || !password) {
-    throw new Error("PEXBOT_EMAIL and PEXBOT_PASSWORD environment variables are required");
+function getAuthHeaders(): Record<string, string> {
+  if (API_KEY) {
+    return { "X-API-Key": API_KEY };
   }
-
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: "Login failed" }));
-    throw new Error(`Login failed: ${(err as any).message || res.statusText}`);
+  if (JWT_TOKEN) {
+    return { Authorization: `Bearer ${JWT_TOKEN}` };
   }
-  const data = (await res.json()) as { token: string };
-  return data.token;
-}
-
-async function ensureAuth(): Promise<string> {
-  if (!authToken) {
-    authToken = await login();
-  }
-  return authToken;
+  throw new Error(
+    "Authentication required: set PEXBOT_API_KEY (or PEXBOT_TOKEN as fallback)"
+  );
 }
 
 async function apiGet<T>(path: string): Promise<T> {
-  const token = await ensureAuth();
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -78,12 +63,11 @@ async function apiGet<T>(path: string): Promise<T> {
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const token = await ensureAuth();
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...getAuthHeaders(),
     },
     body: JSON.stringify(body),
   });
@@ -95,10 +79,9 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function apiDelete<T>(path: string): Promise<T> {
-  const token = await ensureAuth();
   const res = await fetch(`${API_BASE}${path}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -265,16 +248,14 @@ server.tool(
 // ── Start ──
 
 async function main() {
-  // Auto-login on start if credentials are provided
-  if (process.env.PEXBOT_EMAIL && process.env.PEXBOT_PASSWORD && !authToken) {
-    try {
-      authToken = await login();
-      process.stderr.write(`[pexbot-mcp] Logged in successfully\n`);
-    } catch (err: any) {
-      process.stderr.write(`[pexbot-mcp] Auto-login failed: ${err.message}\n`);
-    }
-  } else if (authToken) {
-    process.stderr.write(`[pexbot-mcp] Using provided PEXBOT_TOKEN\n`);
+  if (API_KEY) {
+    process.stderr.write(`[pexbot-mcp] Using API key authentication\n`);
+  } else if (JWT_TOKEN) {
+    process.stderr.write(`[pexbot-mcp] Using JWT token authentication (fallback)\n`);
+  } else {
+    process.stderr.write(
+      `[pexbot-mcp] WARNING: No auth credentials found. Set PEXBOT_API_KEY or PEXBOT_TOKEN.\n`
+    );
   }
 
   const transport = new StdioServerTransport();
