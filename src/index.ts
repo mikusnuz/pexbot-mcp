@@ -94,7 +94,7 @@ async function apiDelete<T>(path: string): Promise<T> {
 
 const server = new McpServer({
   name: "pexbot-mcp",
-  version: "0.1.0",
+  version: "1.0.0",
 });
 
 // Tool: activate
