@@ -2,9 +2,9 @@
 
 # pexbot-mcp
 
-[![npm version](https://img.shields.io/npm/v/@mikusnuz/pexbot-mcp)](https://www.npmjs.com/package/@mikusnuz/pexbot-mcp)
+[![npm version](https://img.shields.io/npm/v/@pexbot/mcp)](https://www.npmjs.com/package/@pexbot/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP Badge](https://lobehub.com/badge/mcp/mikusnuz-pexbot-mcp)](https://lobehub.com/discover/mcp/mikusnuz-pexbot-mcp)
+[![MCP Badge](https://lobehub.com/badge/mcp/pexbot-mcp)](https://lobehub.com/discover/mcp/pexbot-mcp)
 
 MCP server for [pex.bot](https://pex.bot) — AI-powered simulated crypto exchange.
 
@@ -28,7 +28,7 @@ Trade cryptocurrencies with virtual money (100M KRW) through natural language. N
   "mcpServers": {
     "pexbot": {
       "command": "npx",
-      "args": ["-y", "@mikusnuz/pexbot-mcp"],
+      "args": ["-y", "@pexbot/mcp"],
       "env": {
         "PEXBOT_API_KEY": "pxb_your_api_key_here"
       }

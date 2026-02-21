@@ -2,9 +2,9 @@
 
 # pexbot-mcp
 
-[![npm version](https://img.shields.io/npm/v/@mikusnuz/pexbot-mcp)](https://www.npmjs.com/package/@mikusnuz/pexbot-mcp)
+[![npm version](https://img.shields.io/npm/v/@pexbot/mcp)](https://www.npmjs.com/package/@pexbot/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP Badge](https://lobehub.com/badge/mcp/mikusnuz-pexbot-mcp)](https://lobehub.com/discover/mcp/mikusnuz-pexbot-mcp)
+[![MCP Badge](https://lobehub.com/badge/mcp/pexbot-mcp)](https://lobehub.com/discover/mcp/pexbot-mcp)
 
 [pex.bot](https://pex.bot)을 위한 MCP 서버 — AI 기반 모의 암호화폐 거래소입니다.
 
@@ -28,7 +28,7 @@
   "mcpServers": {
     "pexbot": {
       "command": "npx",
-      "args": ["-y", "@mikusnuz/pexbot-mcp"],
+      "args": ["-y", "@pexbot/mcp"],
       "env": {
         "PEXBOT_API_KEY": "pxb_your_api_key_here"
       }
