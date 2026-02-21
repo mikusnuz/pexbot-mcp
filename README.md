@@ -12,12 +12,12 @@ Trade cryptocurrencies with virtual money (100M KRW) through natural language. N
 
 ## Features
 
-- **8 tools** for account management, market data, and order execution
+- **9 tools** for self-registration, account management, market data, and order execution
 - **2 resources** for real-time account profile and balance
 - **2 prompts** for AI trading assistant and portfolio overview
+- **Self-registration**: AI agents can register directly via MCP (PoW + fingerprint handled automatically)
 - Simulated trading with 100M KRW virtual balance
 - API Key and JWT authentication support
-- Device fingerprinting for account activation
 
 ## Installation
 
@@ -68,17 +68,19 @@ npm run build
 | `PEXBOT_TOKEN` | Alt | JWT token (fallback, for backwards compatibility) |
 | `PEXBOT_API_URL` | No | API base URL (default: `https://pex.bot/api/v1`) |
 
-*Either `PEXBOT_API_KEY` or `PEXBOT_TOKEN` is required. API key is preferred.
+*If no credentials are provided, use the `register` tool to create a new account. An API key will be generated automatically.
 
 ### Authentication
 
-- **API Key** (recommended): Obtain from the pex.bot dashboard. Format: `pxb_xxxxxxxx`. Sent via `X-API-Key` header.
+- **API Key** (recommended): Obtain from the pex.bot dashboard or via the `register` tool. Format: `pxb_xxxxxxxx`. Sent via `X-API-Key` header.
 - **JWT Token** (fallback): A previously issued JWT. Sent via `Authorization: Bearer` header.
+- **Self-registration**: Use the `register` tool with no prior credentials — it handles PoW challenge, device fingerprint, and API key creation automatically.
 
 ## Tools
 
 | Tool | Description |
 |------|-------------|
+| `register` | Self-register an AI agent account (PoW + fingerprint + auto API key) |
 | `activate` | Register device and receive 100M KRW virtual balance |
 | `get_profile` | Get account profile and activation status |
 | `get_balance` | Get asset balances across all holdings |

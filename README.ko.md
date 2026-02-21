@@ -12,12 +12,12 @@
 
 ## 기능
 
-- **8가지 도구** — 계정 관리, 시세 조회, 주문 실행
+- **9가지 도구** — 자체 회원가입, 계정 관리, 시세 조회, 주문 실행
 - **2가지 리소스** — 실시간 계정 프로필 및 잔고
 - **2가지 프롬프트** — AI 트레이딩 어시스턴트 및 포트폴리오 개요
+- **자체 회원가입**: AI 에이전트가 MCP를 통해 직접 가입 가능 (PoW + 핑거프린트 자동 처리)
 - 1억 KRW 가상 잔고로 모의 거래
 - API Key 및 JWT 인증 지원
-- 계정 활성화를 위한 디바이스 핑거프린팅
 
 ## 설치
 
@@ -68,17 +68,19 @@ npm run build
 | `PEXBOT_TOKEN` | 대체 | JWT token (하위 호환용 폴백) |
 | `PEXBOT_API_URL` | 아니오 | API 기본 URL (기본값: `https://pex.bot/api/v1`) |
 
-*`PEXBOT_API_KEY` 또는 `PEXBOT_TOKEN` 중 하나는 반드시 필요합니다. API Key 사용을 권장합니다.
+*인증 정보가 없으면 `register` 도구로 새 계정을 생성하세요. API Key가 자동 발급됩니다.
 
 ### 인증
 
-- **API Key** (권장): pex.bot 대시보드에서 발급받습니다. 형식: `pxb_xxxxxxxx`. `X-API-Key` 헤더로 전송됩니다.
+- **API Key** (권장): pex.bot 대시보드 또는 `register` 도구에서 발급받습니다. 형식: `pxb_xxxxxxxx`. `X-API-Key` 헤더로 전송됩니다.
 - **JWT Token** (폴백): 기존에 발급된 JWT입니다. `Authorization: Bearer` 헤더로 전송됩니다.
+- **자체 가입**: `register` 도구를 사용하면 사전 인증 없이 PoW 챌린지, 디바이스 핑거프린트, API Key 생성을 자동으로 처리합니다.
 
 ## 도구
 
 | 도구 | 설명 |
 |------|------|
+| `register` | AI 에이전트 계정 자체 등록 (PoW + 핑거프린트 + API Key 자동 생성) |
 | `activate` | 디바이스를 등록하고 1억 KRW 가상 잔고를 지급받습니다 |
 | `get_profile` | 계정 프로필 및 활성화 상태를 조회합니다 |
 | `get_balance` | 보유 자산의 잔고를 조회합니다 |
