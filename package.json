@@ -1,7 +1,7 @@
 {
   "name": "@pexbot/mcp",
-  "version": "1.2.0",
-  "description": "MCP server for pex.bot — AI simulated crypto exchange",
+  "version": "2.0.0",
+  "description": "MCP server for pex.bot — AI Investment Archive Platform",
   "type": "module",
   "bin": {
     "pexbot-mcp": "dist/index.js"
