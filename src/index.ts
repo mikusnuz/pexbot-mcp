@@ -332,7 +332,7 @@ server.tool(
 // Tool: place_order (v2: extended with reason/confidence for Arena/Autonomous accounts)
 server.tool(
   "place_order",
-  "Place a buy or sell order on a market. For Arena/Autonomous accounts, reason_ko, reason_en, and confidence are required. Reasons must be specific and time-bound — see trade_reasoning_guide prompt. Generic reasons like 'strong fundamentals' will be publicly visible and reflect poorly on your analysis.",
+  "Place a buy or sell order on a market. For Autonomous accounts, reason_ko, reason_en, and confidence are required. Reasons must be specific and time-bound — see trade_reasoning_guide prompt. Generic reasons like 'strong fundamentals' will be publicly visible and reflect poorly on your analysis.",
   {
     symbol: z.string().describe('Market symbol, e.g. "BTC-KRW"'),
     side: z.enum(["buy", "sell"]).describe("Order side"),
@@ -340,9 +340,9 @@ server.tool(
     price: z.string().optional().describe("Price (required for limit orders)"),
     quantity: z.string().describe("Order quantity"),
     reason: z.string().optional().describe("Legacy single-language reason (fallback). Prefer reason_ko + reason_en."),
-    reason_ko: z.string().optional().describe("Korean trade reasoning — specific, time-bound rationale for this trade (required for Arena/Autonomous accounts)"),
-    reason_en: z.string().optional().describe("English trade reasoning — specific, time-bound rationale for this trade (required for Arena/Autonomous accounts)"),
-    confidence: z.number().min(0).max(1).optional().describe("Confidence level 0-1 (required for Arena/Autonomous accounts)"),
+    reason_ko: z.string().optional().describe("Korean trade reasoning — specific, time-bound rationale for this trade (required for Autonomous accounts)"),
+    reason_en: z.string().optional().describe("English trade reasoning — specific, time-bound rationale for this trade (required for Autonomous accounts)"),
+    confidence: z.number().min(0).max(1).optional().describe("Confidence level 0-1 (required for Autonomous accounts)"),
     strategy_tag: z.string().optional().describe('Strategy tag, e.g. "momentum", "dip_buy", "rebalance"'),
     plan: z.string().optional().describe("Short-term plan, e.g. \"target +3% in 24h\""),
   },
@@ -375,57 +375,7 @@ server.tool(
   }
 );
 
-// ── v2 Tools: Arena & Autonomous ──
-
-// Tool: join_arena
-server.tool(
-  "join_arena",
-  "Join the AI Arena with a specific persona. Creates a dedicated Arena account with fixed seed capital. Your AI must follow the persona's rules — the Persona Guard will reject violations automatically.",
-  {
-    persona_id: z.string().describe('Persona ID to join, e.g. "flash", "wave_rider", "fortress"'),
-    model_name: z.string().optional().describe('Your AI model name for display, e.g. "claude-sonnet-4", "my-custom-agent"'),
-  },
-  async ({ persona_id, model_name }) => {
-    try {
-      const data = await apiPost<{
-        run_id: string;
-        user_id: string;
-        persona_id: string;
-        seed_capital: string;
-        api_key: string;
-      }>("/arena/join", { persona_id, model_name });
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: [
-              `Joined Arena as "${persona_id}" successfully!`,
-              "",
-              `Run ID: ${data.run_id}`,
-              `Arena Account: ${data.user_id}`,
-              `Seed Capital: ${Number(data.seed_capital).toLocaleString()} KRW`,
-              `Arena API Key: ${data.api_key}`,
-              "",
-              "⚠️ IMPORTANT: Save this Arena API key to your persistent memory RIGHT NOW.",
-              "This key is shown only once and cannot be recovered.",
-              "",
-              "Important: Use the Arena API Key for all Arena trades.",
-              "The Persona Guard will enforce persona rules on every order.",
-              "Every order MUST include 'reason_ko', 'reason_en', and 'confidence' fields.",
-              "Reasons must be bilingual — provide BOTH Korean and English.",
-              "See the 'trade_reasoning_guide' prompt for how to write effective reasons.",
-            ].join("\n"),
-          },
-        ],
-      };
-    } catch (err: any) {
-      return {
-        content: [{ type: "text" as const, text: `Failed to join Arena: ${err.message}` }],
-        isError: true,
-      };
-    }
-  }
-);
+// ── v2 Tools: Autonomous ──
 
 // Tool: join_autonomous
 server.tool(
@@ -478,25 +428,10 @@ server.tool(
 // Tool: get_my_runs
 server.tool(
   "get_my_runs",
-  "Get your Arena and Autonomous participation status. Shows all your active runs, their performance, and current status.",
+  "Get your Autonomous participation status. Shows all your active runs, their performance, and current status.",
   {},
   async () => {
     const data = await apiGet<unknown[]>("/me/runs");
-    return {
-      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-    };
-  }
-);
-
-// Tool: get_persona_rules
-server.tool(
-  "get_persona_rules",
-  "Get the detailed rules for a specific Arena persona. Use this to understand what constraints your AI must follow before joining.",
-  {
-    persona_id: z.string().describe('Persona ID, e.g. "flash", "wave_rider", "fortress"'),
-  },
-  async ({ persona_id }) => {
-    const data = await apiGet<unknown>(`/arena/personas/${persona_id}`);
     return {
       content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
     };
@@ -534,48 +469,6 @@ server.resource(
 );
 
 // ── v2 Resources ──
-
-server.resource(
-  "arena-personas",
-  "pexbot://personas",
-  { description: "All Arena personas with their rules and descriptions", mimeType: "application/json" },
-  async () => {
-    const data = await apiGetPublic<unknown>("/arena/personas");
-    return {
-      contents: [
-        { uri: "pexbot://personas", mimeType: "application/json", text: JSON.stringify(data, null, 2) },
-      ],
-    };
-  }
-);
-
-server.resource(
-  "arena-matrix",
-  "pexbot://arena/matrix",
-  { description: "Arena performance matrix — persona × model comparison", mimeType: "application/json" },
-  async () => {
-    const data = await apiGetPublic<unknown>("/arena/matrix");
-    return {
-      contents: [
-        { uri: "pexbot://arena/matrix", mimeType: "application/json", text: JSON.stringify(data, null, 2) },
-      ],
-    };
-  }
-);
-
-server.resource(
-  "arena-latest",
-  "pexbot://arena/latest",
-  { description: "Latest Arena decisions across all personas and models", mimeType: "application/json" },
-  async () => {
-    const data = await apiGetPublic<unknown>("/arena/matrix?include_latest=true");
-    return {
-      contents: [
-        { uri: "pexbot://arena/latest", mimeType: "application/json", text: JSON.stringify(data, null, 2) },
-      ],
-    };
-  }
-);
 
 server.resource(
   "autonomous-overview",
@@ -684,38 +577,6 @@ server.prompt(
 // ── v2 Prompts ──
 
 server.prompt(
-  "arena_analysis",
-  "Analyze AI Arena performance — compare how different models perform under the same persona constraints",
-  {},
-  () => ({
-    messages: [
-      {
-        role: "user" as const,
-        content: {
-          type: "text" as const,
-          text: [
-            "Analyze the AI Arena on pex.bot.",
-            "",
-            "Steps:",
-            "1. Read pexbot://personas to understand all 10 investment personas",
-            "2. Read pexbot://arena/matrix to see the persona × model performance matrix",
-            "3. Read pexbot://arena/latest for recent decisions",
-            "",
-            "Then analyze:",
-            "- Which AI model performs best overall across personas?",
-            "- Which persona has the most interesting model divergence?",
-            "- Are there patterns? (e.g., Opus is conservative, Codex is aggressive)",
-            "- Recent notable decisions and their outcomes",
-            "",
-            "Present your analysis in clear, non-technical language.",
-          ].join("\n"),
-        },
-      },
-    ],
-  })
-);
-
-server.prompt(
   "decision_replay",
   "Replay and analyze a specific AI decision — understand why the AI made that choice",
   {
@@ -738,7 +599,7 @@ server.prompt(
             "1. What was the market situation at the time?",
             "2. What did the AI decide to do and why?",
             "3. How confident was it? (show as a percentage)",
-            "4. Did the Persona Guard modify or reject the decision?",
+            "4. Was the order successfully executed?",
             "5. What was the result? (1h, 6h, 24h performance)",
             "",
             "Use simple language — imagine explaining to someone who knows nothing about trading.",
@@ -751,7 +612,7 @@ server.prompt(
 
 server.prompt(
   "model_comparison",
-  "Compare two AI models head-to-head across Arena and Autonomous performance",
+  "Compare two AI models head-to-head across Autonomous performance",
   {
     model_a: z.string().optional().describe("First model name"),
     model_b: z.string().optional().describe("Second model name"),
@@ -767,14 +628,14 @@ server.prompt(
             "",
             model_a && model_b
               ? `Compare: ${model_a} vs ${model_b}`
-              : "Read pexbot://arena/matrix and pick the top 2 performing models to compare.",
+              : "Read pexbot://autonomous/overview and pick the top 2 performing models to compare.",
             "",
             "Analysis should cover:",
-            "1. Overall returns in Arena (across all personas)",
-            "2. Autonomous investment performance",
+            "1. Autonomous investment performance and returns",
+            "2. Portfolio composition and asset allocation",
             "3. Trading habits (frequency, hold time, diversification)",
             "4. Risk profile (drawdown, volatility, daily loss patterns)",
-            "5. Decision quality (confidence vs accuracy, Guard rejection rate)",
+            "5. Decision quality (confidence vs accuracy)",
             "",
             "Conclude with: which model would you trust with your money and why?",
           ].join("\n"),
