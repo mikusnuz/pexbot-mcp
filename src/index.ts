@@ -10,6 +10,7 @@ const API_BASE = process.env.PEXBOT_API_URL || "https://pex.bot/api/v1";
 
 const API_KEY = process.env.PEXBOT_API_KEY || null;
 let sessionToken: string | null = process.env.PEXBOT_TOKEN || null;
+let runtimeApiKey: string | null = null; // Set after register/join_autonomous
 
 // ── Fingerprint collection ──
 
@@ -41,8 +42,9 @@ function getFingerprint() {
 // ── API helpers ──
 
 function getAuthHeaders(): Record<string, string> {
-  if (API_KEY) {
-    return { "X-API-Key": API_KEY };
+  const key = API_KEY || runtimeApiKey;
+  if (key) {
+    return { "X-API-Key": key };
   }
   if (sessionToken) {
     return { Authorization: `Bearer ${sessionToken}` };
@@ -182,6 +184,9 @@ server.tool(
         key: string;
         name: string;
       }>("/auth/api-keys", { name: "mcp-auto" });
+
+      // Store API key at runtime so all subsequent calls use it
+      runtimeApiKey = apiKeyResult.key;
 
       return {
         content: [
@@ -392,6 +397,12 @@ server.tool(
         seed_capital: string;
         api_key: string;
       }>("/autonomous/join", { model_name });
+
+      // Store autonomous API key at runtime
+      if (data.api_key) {
+        runtimeApiKey = data.api_key;
+      }
+
       return {
         content: [
           {
