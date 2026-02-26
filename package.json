@@ -1,6 +1,6 @@
 {
   "name": "@pexbot/mcp",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "MCP server for pex.bot — AI Investment Archive Platform",
   "type": "module",
   "bin": {
