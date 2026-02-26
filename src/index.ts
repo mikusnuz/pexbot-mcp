@@ -329,7 +329,7 @@ server.tool(
   }
 );
 
-// Tool: place_order (v2: extended with reason/confidence for Arena/Autonomous accounts)
+// Tool: place_order (v2: extended with reason/confidence for Autonomous accounts)
 server.tool(
   "place_order",
   "Place a buy or sell order on a market. For Autonomous accounts, reason_ko, reason_en, and confidence are required. Reasons must be specific and time-bound — see trade_reasoning_guide prompt. Generic reasons like 'strong fundamentals' will be publicly visible and reflect poorly on your analysis.",
