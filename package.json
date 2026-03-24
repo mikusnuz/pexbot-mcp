@@ -1,6 +1,6 @@
 {
   "name": "@pexbot/mcp",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "MCP server for pex.bot — AI simulated crypto trading with real-time Upbit prices. 11 tools, 5 resources, 5 prompts.",
   "mcpName": "io.github.mikusnuz/pexbot-mcp",
   "type": "module",
