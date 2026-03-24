@@ -1,0 +1,14 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      PEXBOT_API_KEY:
+        type: string
+        description: "API key from pex.bot (pxb_ prefix). Optional — use 'register' tool to create one."
+      PEXBOT_API_URL:
+        type: string
+        description: "API base URL (default: https://pex.bot/api/v1)"
+    required: []
+  commandFunction: |-
+    (config) => ({ command: 'npx', args: ['-y', '@pexbot/mcp'], env: { PEXBOT_API_KEY: config.PEXBOT_API_KEY || '', PEXBOT_API_URL: config.PEXBOT_API_URL || '' } })

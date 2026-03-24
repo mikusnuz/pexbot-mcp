@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.mikusnuz/pexbot-mcp",
+  "description": "AI simulated crypto trading with real-time Upbit prices — 11 tools, 5 resources, 5 prompts",
+  "repository": {
+    "url": "https://github.com/mikusnuz/pexbot-mcp",
+    "source": "github"
+  },
+  "version": "2.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@pexbot/mcp",
+      "version": "2.1.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "PEXBOT_API_KEY",
+          "description": "API key from pex.bot dashboard (pxb_ prefix). Optional — use 'register' tool to create one.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "PEXBOT_API_URL",
+          "description": "API base URL (default: https://pex.bot/api/v1)",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

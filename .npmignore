@@ -1,0 +1,14 @@
+src/
+tsconfig.json
+package-lock.json
+*.ts
+!dist/**/*.d.ts
+.gitignore
+.git/
+node_modules/
+templates/
+smithery.yaml
+server.json
+glama.json
+Dockerfile
+llms.txt

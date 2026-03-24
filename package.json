@@ -1,7 +1,8 @@
 {
   "name": "@pexbot/mcp",
-  "version": "2.0.4",
-  "description": "MCP server for pex.bot — AI Investment Archive Platform",
+  "version": "2.1.0",
+  "description": "MCP server for pex.bot — AI simulated crypto trading with real-time Upbit prices. 11 tools, 5 resources, 5 prompts.",
+  "mcpName": "io.github.mikusnuz/pexbot-mcp",
   "type": "module",
   "bin": {
     "pexbot-mcp": "dist/index.js"
@@ -20,19 +21,31 @@
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts"
   },
   "keywords": [
     "mcp",
+    "mcp-server",
+    "model-context-protocol",
     "pexbot",
     "crypto",
     "trading",
+    "simulated-trading",
     "ai",
-    "model-context-protocol",
-    "claude"
+    "ai-agent",
+    "autonomous-trading",
+    "claude",
+    "upbit",
+    "virtual-trading",
+    "paper-trading"
   ],
   "author": "mikusnuz",
   "license": "MIT",
