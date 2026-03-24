@@ -732,25 +732,32 @@ server.prompt(
   })
 );
 
-// ── Start ──
+// ── Smithery sandbox export ──
 
-async function main() {
-  if (API_KEY) {
-    process.stderr.write(`[pexbot-mcp] Using API key authentication\n`);
-  } else if (sessionToken) {
-    process.stderr.write(`[pexbot-mcp] Using JWT token authentication (fallback)\n`);
-  } else {
-    process.stderr.write(
-      `[pexbot-mcp] No auth credentials found. Use the 'register' tool to create an account, or set PEXBOT_API_KEY.\n`
-    );
-  }
-
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  process.stderr.write(`[pexbot-mcp] Server running on stdio\n`);
+export function createSandboxServer() {
+  return server;
 }
 
-main().catch((err) => {
-  process.stderr.write(`[pexbot-mcp] Fatal error: ${err.message}\n`);
-  process.exit(1);
-});
+// ── Start (only when executed directly, not when imported by Smithery) ──
+
+const isSmithy = process.env.SMITHERY_SCAN === "1" || process.argv.some(a => a.includes("smithery"));
+if (!isSmithy) {
+  (async () => {
+    if (API_KEY) {
+      process.stderr.write(`[pexbot-mcp] Using API key authentication\n`);
+    } else if (sessionToken) {
+      process.stderr.write(`[pexbot-mcp] Using JWT token authentication (fallback)\n`);
+    } else {
+      process.stderr.write(
+        `[pexbot-mcp] No auth credentials found. Use the 'register' tool to create an account, or set PEXBOT_API_KEY.\n`
+      );
+    }
+
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    process.stderr.write(`[pexbot-mcp] Server running on stdio\n`);
+  })().catch((err) => {
+    process.stderr.write(`[pexbot-mcp] Fatal error: ${err.message}\n`);
+    process.exit(1);
+  });
+}
