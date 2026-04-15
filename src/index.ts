@@ -7,6 +7,7 @@ import os from "node:os";
 import crypto from "node:crypto";
 
 const API_BASE = process.env.PEXBOT_API_URL || "https://pex.bot/api/v1";
+const FUTURES_BASE = API_BASE.replace(/\/api\/v1$/, "/api/v2/futures");
 
 const API_KEY = process.env.PEXBOT_API_KEY || null;
 let sessionToken: string | null = process.env.PEXBOT_TOKEN || null;
@@ -127,11 +128,68 @@ async function apiDelete<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// ── Futures API helpers ──
+
+async function futuresGet<T>(path: string): Promise<T> {
+  const res = await fetch(`${FUTURES_BASE}${path}`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Futures GET ${path} failed (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+async function futuresPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${FUTURES_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Futures POST ${path} failed (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+async function futuresDelete<T>(path: string): Promise<T> {
+  const res = await fetch(`${FUTURES_BASE}${path}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Futures DELETE ${path} failed (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+async function futuresPut<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${FUTURES_BASE}${path}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Futures PUT ${path} failed (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
 // ── MCP Server ──
 
 const server = new McpServer({
   name: "pexbot-mcp",
-  version: "2.0.0",
+  version: "2.2.0",
 });
 
 // Tool: register
@@ -337,7 +395,7 @@ server.tool(
 // Tool: place_order (v2: extended with reason/confidence for Autonomous accounts)
 server.tool(
   "place_order",
-  "Place a buy or sell order on a market. For Autonomous accounts, reason_ko, reason_en, and confidence are required. Reasons must be specific and time-bound — see trade_reasoning_guide prompt. Generic reasons like 'strong fundamentals' will be publicly visible and reflect poorly on your analysis.",
+  "Place a buy or sell order on a spot market. For Autonomous accounts, reason_ko, reason_en, and confidence are required. Reasons must be specific and time-bound — see trade_reasoning_guide prompt. Generic reasons will be publicly visible and reflect poorly on your analysis.",
   {
     symbol: z.string().describe('Market symbol, e.g. "BTC-KRW"'),
     side: z.enum(["buy", "sell"]).describe("Order side"),
@@ -349,9 +407,8 @@ server.tool(
     reason_en: z.string().optional().describe("English trade reasoning — specific, time-bound rationale for this trade (required for Autonomous accounts)"),
     confidence: z.number().min(0).max(1).optional().describe("Confidence level 0-1 (required for Autonomous accounts)"),
     strategy_tag: z.string().optional().describe('Strategy tag, e.g. "momentum", "dip_buy", "rebalance"'),
-    plan: z.string().optional().describe("Short-term plan, e.g. \"target +3% in 24h\""),
   },
-  async ({ symbol, side, order_type, price, quantity, reason, reason_ko, reason_en, confidence, strategy_tag, plan }) => {
+  async ({ symbol, side, order_type, price, quantity, reason, reason_ko, reason_en, confidence, strategy_tag }) => {
     const body: Record<string, unknown> = { symbol, side, order_type, quantity };
     if (price) body.price = price;
     if (reason) body.reason = reason;
@@ -359,7 +416,6 @@ server.tool(
     if (reason_en) body.reason_en = reason_en;
     if (confidence !== undefined) body.confidence = confidence;
     if (strategy_tag) body.strategy_tag = strategy_tag;
-    if (plan) body.plan = plan;
     const data = await apiPost<unknown>("/orders", body);
     return {
       content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
@@ -374,6 +430,200 @@ server.tool(
   { order_id: z.string().describe("UUID of the order to cancel") },
   async ({ order_id }) => {
     const data = await apiDelete<unknown>(`/orders/${order_id}`);
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: list_orders
+server.tool(
+  "list_orders",
+  "List your spot orders. Optionally filter by status and symbol.",
+  {
+    status: z.enum(["open", "filled", "cancelled", "all"]).optional().default("open").describe("Order status filter (default: open)"),
+    symbol: z.string().optional().describe('Filter by market symbol, e.g. "BTC-KRW"'),
+  },
+  async ({ status, symbol }) => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (symbol) params.set("symbol", symbol);
+    const qs = params.toString();
+    const data = await apiGet<unknown>(`/orders${qs ? `?${qs}` : ""}`);
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: get_trades
+server.tool(
+  "get_trades",
+  "Get recent trades for a specific market.",
+  {
+    symbol: z.string().describe('Market symbol, e.g. "BTC-KRW"'),
+    limit: z.number().optional().default(50).describe("Number of trades to return (default 50)"),
+  },
+  async ({ symbol, limit }) => {
+    const data = await apiGet<unknown>(`/markets/${symbol}/trades?limit=${limit}`);
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ── Futures Tools ──
+
+// Tool: futures_transfer
+server.tool(
+  "futures_transfer",
+  "Transfer funds between spot and futures wallets.",
+  {
+    direction: z.enum(["spot_to_futures", "futures_to_spot"]).describe("Transfer direction"),
+    amount: z.string().describe("Amount to transfer"),
+    asset: z.string().optional().default("KRW").describe("Asset to transfer (default: KRW)"),
+  },
+  async ({ direction, amount, asset }) => {
+    const data = await futuresPost<unknown>("/transfer", { direction, amount, asset });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: get_futures_wallet
+server.tool(
+  "get_futures_wallet",
+  "Get your futures wallet balance, margin, and unrealized PnL.",
+  {},
+  async () => {
+    const data = await futuresGet<unknown>("/wallet");
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: place_futures_order
+server.tool(
+  "place_futures_order",
+  "Place a futures order. Supports market, limit, stop, and take-profit order types with configurable leverage.",
+  {
+    symbol: z.string().describe('Futures market symbol, e.g. "BTC-KRW"'),
+    side: z.enum(["buy", "sell"]).describe("Order side"),
+    position_side: z.enum(["long", "short"]).describe("Position direction"),
+    order_type: z.enum(["market", "limit", "stop_market", "stop_limit", "take_profit", "take_profit_limit"]).describe("Order type"),
+    price: z.string().optional().describe("Limit price (required for limit/stop_limit/take_profit_limit orders)"),
+    stop_price: z.string().optional().describe("Stop trigger price (required for stop_market/stop_limit orders)"),
+    quantity: z.string().describe("Order quantity"),
+    leverage: z.number().optional().default(1).describe("Leverage multiplier (default: 1)"),
+    reduce_only: z.boolean().optional().describe("If true, only reduces existing position"),
+    close_position: z.boolean().optional().describe("If true, closes the entire position"),
+    take_profit: z.string().optional().describe("Take-profit price for automatic TP order"),
+    stop_loss: z.string().optional().describe("Stop-loss price for automatic SL order"),
+  },
+  async ({ symbol, side, position_side, order_type, price, stop_price, quantity, leverage, reduce_only, close_position, take_profit, stop_loss }) => {
+    const body: Record<string, unknown> = { symbol, side, position_side, order_type, quantity };
+    if (price) body.price = price;
+    if (stop_price) body.stop_price = stop_price;
+    if (leverage !== undefined) body.leverage = leverage;
+    if (reduce_only !== undefined) body.reduce_only = reduce_only;
+    if (close_position !== undefined) body.close_position = close_position;
+    if (take_profit) body.take_profit = take_profit;
+    if (stop_loss) body.stop_loss = stop_loss;
+    const data = await futuresPost<unknown>("/order", body);
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: cancel_futures_order
+server.tool(
+  "cancel_futures_order",
+  "Cancel an open futures order by its ID.",
+  {
+    order_id: z.string().describe("UUID of the futures order to cancel"),
+  },
+  async ({ order_id }) => {
+    const data = await futuresDelete<unknown>(`/order/${order_id}`);
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: list_futures_orders
+server.tool(
+  "list_futures_orders",
+  "List your futures orders. Optionally filter by status and symbol.",
+  {
+    status: z.enum(["open", "filled", "cancelled", "all"]).optional().default("open").describe("Order status filter (default: open)"),
+    symbol: z.string().optional().describe('Filter by futures symbol, e.g. "BTC-KRW"'),
+  },
+  async ({ status, symbol }) => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (symbol) params.set("symbol", symbol);
+    const qs = params.toString();
+    const data = await futuresGet<unknown>(`/orders${qs ? `?${qs}` : ""}`);
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: get_futures_positions
+server.tool(
+  "get_futures_positions",
+  "Get all your open futures positions with entry price, PnL, and liquidation price.",
+  {},
+  async () => {
+    const data = await futuresGet<unknown>("/positions");
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: set_leverage
+server.tool(
+  "set_leverage",
+  "Set leverage for a specific futures position.",
+  {
+    position_id: z.string().describe("UUID of the position"),
+    leverage: z.number().min(1).describe("New leverage multiplier"),
+  },
+  async ({ position_id, leverage }) => {
+    const data = await futuresPut<unknown>(`/positions/${position_id}/leverage`, { leverage });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: get_futures_markets
+server.tool(
+  "get_futures_markets",
+  "List all available futures markets with contract details.",
+  {},
+  async () => {
+    const data = await futuresGet<unknown>("/markets");
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// Tool: get_futures_ticker
+server.tool(
+  "get_futures_ticker",
+  "Get current ticker information for a futures market.",
+  {
+    symbol: z.string().describe('Futures market symbol, e.g. "BTC-KRW"'),
+  },
+  async ({ symbol }) => {
+    const data = await futuresGet<unknown>(`/markets/${symbol}/ticker`);
     return {
       content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
     };

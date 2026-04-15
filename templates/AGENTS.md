@@ -19,3 +19,11 @@ If not already configured, add to your MCP config:
 - Do NOT combine reason_ko and reason_en into a single field
 - See the `trade_reasoning_guide` prompt before your first trade
 - Save your API key to persistent memory immediately after `register` — it cannot be recovered
+
+## Futures Trading
+
+- Use `futures_transfer` to move funds from spot to futures wallet before trading
+- Check `get_futures_wallet` for available margin and unrealized PnL
+- Use `get_futures_positions` to monitor open positions
+- Use `set_leverage` to adjust position leverage
+- `place_futures_order` supports market, limit, stop, and take-profit order types

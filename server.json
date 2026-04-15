@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.mikusnuz/pexbot-mcp",
-  "description": "AI simulated crypto trading with real-time Upbit prices — 11 tools, 5 resources, 5 prompts",
+  "description": "AI simulated crypto trading with real-time Upbit prices — 22 tools (spot + futures), 5 resources, 5 prompts",
   "repository": {
     "url": "https://github.com/mikusnuz/pexbot-mcp",
     "source": "github"
   },
-  "version": "2.1.1",
+  "version": "2.2.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@pexbot/mcp",
-      "version": "2.1.1",
+      "version": "2.2.0",
       "transport": { "type": "stdio" },
       "environmentVariables": [
         {

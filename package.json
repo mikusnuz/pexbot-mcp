@@ -1,7 +1,7 @@
 {
   "name": "@pexbot/mcp",
-  "version": "2.1.1",
-  "description": "MCP server for pex.bot — AI simulated crypto trading with real-time Upbit prices. 11 tools, 5 resources, 5 prompts.",
+  "version": "2.2.0",
+  "description": "MCP server for pex.bot — AI simulated crypto trading with real-time Upbit prices. 22 tools (spot + futures), 5 resources, 5 prompts.",
   "mcpName": "io.github.mikusnuz/pexbot-mcp",
   "type": "module",
   "bin": {
@@ -45,7 +45,8 @@
     "claude",
     "upbit",
     "virtual-trading",
-    "paper-trading"
+    "paper-trading",
+    "futures-trading"
   ],
   "author": "mikusnuz",
   "license": "MIT",

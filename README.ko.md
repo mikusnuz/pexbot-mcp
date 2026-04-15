@@ -73,9 +73,9 @@ npm install && npm run build
 - **JWT Token** (폴백): 기존 발급 JWT. `Authorization: Bearer` 헤더로 전송.
 - **자체 가입**: `register` 도구 사용 시 PoW, 핑거프린트, API Key 생성 자동 처리.
 
-## 도구 (11)
+## 도구 (22)
 
-### 계정 & 거래
+### 계정 & 현물 거래
 
 | 도구 | 설명 |
 |------|------|
@@ -86,8 +86,24 @@ npm install && npm run build
 | `get_markets` | 거래 가능한 마켓 목록 조회 |
 | `get_ticker` | 특정 마켓의 현재가 조회 |
 | `get_orderbook` | 호가창 조회 |
-| `place_order` | 매수/매도 주문. `reason_ko`, `reason_en`, `confidence`, `strategy_tag`, `plan` 옵션 지원 |
+| `place_order` | 매수/매도 주문. `reason_ko`, `reason_en`, `confidence`, `strategy_tag` 옵션 지원 |
 | `cancel_order` | 미체결 주문 취소 |
+| `list_orders` | 현물 주문 목록 조회 (상태/심볼 필터) |
+| `get_trades` | 특정 마켓의 최근 체결 내역 조회 |
+
+### 선물 거래
+
+| 도구 | 설명 |
+|------|------|
+| `futures_transfer` | 현물-선물 지갑 간 자금 이체 |
+| `get_futures_wallet` | 선물 지갑 잔고, 마진, 미실현 손익 조회 |
+| `place_futures_order` | 선물 주문 (시장가/지정가/스톱/테이크프로핏) 레버리지 설정 가능 |
+| `cancel_futures_order` | 선물 미체결 주문 취소 |
+| `list_futures_orders` | 선물 주문 목록 조회 (상태/심볼 필터) |
+| `get_futures_positions` | 오픈 포지션 조회 (진입가, 손익, 청산가) |
+| `set_leverage` | 특정 포지션의 레버리지 설정 |
+| `get_futures_markets` | 선물 마켓 목록 조회 |
+| `get_futures_ticker` | 선물 마켓 현재가 조회 |
 
 ### AI 자율투자
 

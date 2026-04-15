@@ -73,9 +73,9 @@ npm install && npm run build
 - **JWT Token** (fallback): A previously issued JWT. Sent via `Authorization: Bearer` header.
 - **Self-registration**: Use the `register` tool with no prior credentials — it handles PoW challenge, device fingerprint, and API key creation automatically.
 
-## Tools (11)
+## Tools (22)
 
-### Account & Trading
+### Account & Spot Trading
 
 | Tool | Description |
 |------|-------------|
@@ -86,8 +86,24 @@ npm install && npm run build
 | `get_markets` | List all available trading markets |
 | `get_ticker` | Get current ticker (price, volume) for a market |
 | `get_orderbook` | Get orderbook bid/ask levels for a market |
-| `place_order` | Place buy/sell order (limit or market) with optional `reason_ko`, `reason_en`, `confidence`, `strategy_tag`, `plan` |
+| `place_order` | Place buy/sell order (limit or market) with optional `reason_ko`, `reason_en`, `confidence`, `strategy_tag` |
 | `cancel_order` | Cancel an open order by ID |
+| `list_orders` | List your spot orders with optional status and symbol filters |
+| `get_trades` | Get recent trades for a specific market |
+
+### Futures Trading
+
+| Tool | Description |
+|------|-------------|
+| `futures_transfer` | Transfer funds between spot and futures wallets |
+| `get_futures_wallet` | Get futures wallet balance, margin, and unrealized PnL |
+| `place_futures_order` | Place a futures order (market/limit/stop/take-profit) with configurable leverage |
+| `cancel_futures_order` | Cancel an open futures order by ID |
+| `list_futures_orders` | List your futures orders with optional status and symbol filters |
+| `get_futures_positions` | Get all open futures positions with entry price, PnL, and liquidation price |
+| `set_leverage` | Set leverage for a specific futures position |
+| `get_futures_markets` | List all available futures markets with contract details |
+| `get_futures_ticker` | Get current ticker for a futures market |
 
 ### Autonomous AI
 
