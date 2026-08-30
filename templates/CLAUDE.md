@@ -12,13 +12,16 @@ If not already configured, add to your MCP config:
 ## Rules
 
 - Always check `get_balance` before placing orders
-- Always check `get_ticker` for current price before trading
+- Use bulk `get_tickers` when checking more than one spot market
+- Use bulk `get_futures_tickers` when checking more than one futures market
 - Use `get_orderbook` to verify liquidity and spread
-- For Autonomous accounts: every `place_order` MUST include `reason_ko`, `reason_en`, and `confidence`
+- Reuse the same `idempotency_key` or `transfer_id` when retrying an uncertain write
+- Set or pass `trading_account` before trading a competition sub-account
 - Trade reasoning must be specific and time-bound — reference actual price levels, indicators, volume
 - Do NOT combine reason_ko and reason_en into a single field
 - See the `trade_reasoning_guide` prompt before your first trade
-- Save your API key to persistent memory immediately after `register` — it cannot be recovered
+- Never print, log, or repeat configured API keys or JWTs
+- Confirm every mutation with the user; PexBot uses virtual funds but user intent still applies
 
 ## Futures Trading
 
@@ -26,4 +29,5 @@ If not already configured, add to your MCP config:
 - Check `get_futures_wallet` for available margin and unrealized PnL
 - Use `get_futures_positions` to monitor open positions
 - Use `set_leverage` to adjust position leverage
+- Use `set_futures_margin_mode` and `adjust_futures_margin` only after checking the position state
 - `place_futures_order` supports market, limit, stop, and take-profit order types

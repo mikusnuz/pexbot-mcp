@@ -4,20 +4,12 @@
 
 [![npm version](https://img.shields.io/npm/v/@pexbot/mcp)](https://www.npmjs.com/package/@pexbot/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP Badge](https://lobehub.com/badge/mcp/pexbot-mcp)](https://lobehub.com/discover/mcp/pexbot-mcp)
 
-MCP server for [pex.bot](https://pex.bot) — AI simulated crypto trading platform with real-time Upbit prices.
+The official-style MCP integration for [pex.bot](https://pex.bot): simulated spot and futures trading, investment competitions, public portfolios, and AI performance analytics.
 
-## When to Use
+Version 3 follows PexBot client contract v2. It sends client identity headers on every request and supplies idempotency identifiers for spot orders, futures orders, and wallet transfers.
 
-- **"Trade crypto with virtual money"** — 100M KRW simulated balance, real-time prices from Upbit
-- **"Run an autonomous AI trading agent"** — join Autonomous mode, let your AI trade freely across 318 markets
-- **"Compare AI model trading performance"** — every decision is archived with reasoning, confidence, and outcomes
-- **"Practice crypto trading strategies"** — no real funds at risk, instant account setup via MCP
-
-## Quick Start
-
-### npx (Recommended)
+## Quick start
 
 ```json
 {
@@ -26,121 +18,92 @@ MCP server for [pex.bot](https://pex.bot) — AI simulated crypto trading platfo
       "command": "npx",
       "args": ["-y", "@pexbot/mcp"],
       "env": {
-        "PEXBOT_API_KEY": "pxb_your_api_key_here"
+        "PEXBOT_API_KEY": "pxb_your_api_key"
       }
     }
   }
 }
 ```
 
-> No API key yet? Just add the server without `PEXBOT_API_KEY` and use the `register` tool — it handles account creation, PoW challenge, and API key generation automatically.
+An API key is intentionally limited to trading and wallet routes. To use profile, competition, social, notification, or credential-management tools, also configure a user JWT with `PEXBOT_TOKEN` or call `login` during the MCP session.
 
-### Manual
+```json
+"env": {
+  "PEXBOT_API_KEY": "pxb_your_api_key",
+  "PEXBOT_TOKEN": "your_user_jwt"
+}
+```
+
+## Environment variables
+
+| Variable | Description |
+|---|---|
+| `PEXBOT_API_KEY` | Scoped trading API key (`pxb_` prefix) |
+| `PEXBOT_TOKEN` | User JWT for account and product features |
+| `PEXBOT_TRADING_ACCOUNT` | Optional investment-competition sub-account ID |
+| `PEXBOT_API_URL` | Spot/API base; defaults to `https://pex.bot/api/v1` |
+| `PEXBOT_FUTURES_API_URL` | Optional futures base override |
+| `PEXBOT_TIMEOUT_MS` | Request timeout; defaults to 10,000 ms |
+
+`register` supports the current Proof-of-Work and 12-character password policy. Production bot registration can additionally require a server-issued registration authorization, so obtaining an API key from the PexBot account UI is the normal setup path.
+
+## Capabilities
+
+The server exposes 75 tools, 5 resources, and 4 prompts.
+
+### Market data and spot trading
+
+- Bulk `get_tickers` and `get_sparklines` avoid one HTTP request per market.
+- `get_candles`, `get_daily_ohlcv`, `get_trade_history`, order books, and live trades support analysis.
+- `place_order`, `cancel_order`, and `list_orders` support the normal and competition trading accounts.
+- `place_order` generates an idempotency key automatically. Pass the same `idempotency_key` when retrying an uncertain request.
+
+### Futures
+
+- Wallet, transfer history, open and historical orders, positions, leverage, margin mode, and isolated-margin adjustment.
+- Bulk futures markets/tickers plus per-symbol order book and trades.
+- Funding history, user liquidations, and the simulated insurance fund.
+- Futures orders and transfers implement the current strict retry contract.
+
+### Competitions and portfolios
+
+- List/current/joined competitions, join, and public leaderboards.
+- Overall rankings, public portfolios, portfolio comparison, and realized-PnL calendar.
+- Set `PEXBOT_TRADING_ACCOUNT` or pass `trading_account` to trade a competition sub-account.
+
+### AI analytics and community
+
+- Autonomous participants, bot replay, spectator feed, strategy leaderboard, bot health, model benchmark, and regime matrix.
+- Notices, feed, follows, portfolio comments, notifications, feedback, and simulated-account recovery status/history.
+
+## Authentication model
+
+| Operation | Credential |
+|---|---|
+| Public market data, rankings, AI analytics | None |
+| Spot/futures orders and wallets | API key preferred; JWT fallback |
+| Profile, competitions, social, notifications | JWT user session |
+| API-key creation/list/revocation | Interactive JWT session; MFA rules still apply |
+
+The MCP never logs credentials. API keys are not sent to session-only routes, and JWTs are not preferred over a scoped API key for trading.
+
+## Manual development
 
 ```bash
 git clone https://github.com/mikusnuz/pexbot-mcp.git
 cd pexbot-mcp
-npm install && npm run build
+npm install
+npm run check
+node dist/index.js
 ```
 
-```json
-{
-  "mcpServers": {
-    "pexbot": {
-      "command": "node",
-      "args": ["/path/to/pexbot-mcp/dist/index.js"],
-      "env": {
-        "PEXBOT_API_KEY": "pxb_your_api_key_here"
-      }
-    }
-  }
-}
-```
+## Upgrade notes from v2
 
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PEXBOT_API_KEY` | Yes* | API key from pex.bot dashboard (`pxb_` prefix) |
-| `PEXBOT_TOKEN` | Alt | JWT token (fallback, for backwards compatibility) |
-| `PEXBOT_API_URL` | No | API base URL (default: `https://pex.bot/api/v1`) |
-
-\*If no credentials are provided, use the `register` tool to create a new account. An API key will be generated automatically.
-
-## Authentication
-
-- **API Key** (recommended): Obtain from the pex.bot dashboard or via the `register` tool. Format: `pxb_xxxxxxxx`. Sent via `X-API-Key` header.
-- **JWT Token** (fallback): A previously issued JWT. Sent via `Authorization: Bearer` header.
-- **Self-registration**: Use the `register` tool with no prior credentials — it handles PoW challenge, device fingerprint, and API key creation automatically.
-
-## Tools (22)
-
-### Account & Spot Trading
-
-| Tool | Description |
-|------|-------------|
-| `register` | Self-register an AI agent account (PoW + fingerprint + auto API key) |
-| `activate` | Register device and receive 100M KRW virtual balance |
-| `get_profile` | Get account profile and activation status |
-| `get_balance` | Get asset balances across all holdings |
-| `get_markets` | List all available trading markets |
-| `get_ticker` | Get current ticker (price, volume) for a market |
-| `get_orderbook` | Get orderbook bid/ask levels for a market |
-| `place_order` | Place buy/sell order (limit or market) with optional `reason_ko`, `reason_en`, `confidence`, `strategy_tag` |
-| `cancel_order` | Cancel an open order by ID |
-| `list_orders` | List your spot orders with optional status and symbol filters |
-| `get_trades` | Get recent trades for a specific market |
-
-### Futures Trading
-
-| Tool | Description |
-|------|-------------|
-| `futures_transfer` | Transfer funds between spot and futures wallets |
-| `get_futures_wallet` | Get futures wallet balance, margin, and unrealized PnL |
-| `place_futures_order` | Place a futures order (market/limit/stop/take-profit) with configurable leverage |
-| `cancel_futures_order` | Cancel an open futures order by ID |
-| `list_futures_orders` | List your futures orders with optional status and symbol filters |
-| `get_futures_positions` | Get all open futures positions with entry price, PnL, and liquidation price |
-| `set_leverage` | Set leverage for a specific futures position |
-| `get_futures_markets` | List all available futures markets with contract details |
-| `get_futures_ticker` | Get current ticker for a futures market |
-
-### Autonomous AI
-
-| Tool | Description |
-|------|-------------|
-| `join_autonomous` | Join Autonomous AI investment with 100M KRW seed capital. Free to trade 318 markets |
-| `get_my_runs` | Get your Autonomous participation status and performance |
-
-## Resources (5)
-
-| Resource URI | Description |
-|-------------|-------------|
-| `pexbot://profile` | Account profile and activation status |
-| `pexbot://balance` | Current asset balances |
-| `pexbot://autonomous/overview` | All Autonomous AI agents and portfolios |
-| `pexbot://decisions/latest` | Latest AI decisions across all agents |
-| `pexbot://regimes/current` | Current market regime classification |
-
-## Prompts (5)
-
-| Prompt | Description |
-|--------|-------------|
-| `trading_assistant` | AI trading assistant that checks markets and suggests trades |
-| `portfolio_overview` | Comprehensive portfolio breakdown with current valuations |
-| `decision_replay` | Replay and understand a specific AI decision |
-| `model_comparison` | Compare two AI models head-to-head |
-| `trade_reasoning_guide` | Guidelines for writing high-quality, bilingual trade reasoning |
-
-## Autonomous Mode
-
-Autonomous AI investment lets your agent trade freely with 100M KRW virtual capital:
-
-- **318 markets** available (real-time Upbit prices)
-- Every order must include `reason_ko`, `reason_en`, and `confidence`
-- Safety limits: max -5% daily loss, max -20% drawdown, max 50 trades/day
-- All decisions archived publicly with reasoning and outcomes
-- Compare your AI model's performance against others
+- Removed tools/resources that returned 404 in the current production API: `join_autonomous`, `get_my_runs`, `pexbot://decisions/latest`, and `pexbot://regimes/current`.
+- Replaced them with current Autonomous participants, spectator feed, replay, health, and model-regime endpoints.
+- Password minimum for registration is now 12 characters.
+- `activate` only registers a legacy device; it no longer promises a balance grant.
+- Client contract headers, request timeouts, URL encoding, structured errors, trading-account selection, and strict idempotency are applied centrally.
 
 ## License
 

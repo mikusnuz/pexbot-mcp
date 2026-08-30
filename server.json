@@ -1,24 +1,36 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.mikusnuz/pexbot-mcp",
-  "description": "AI simulated crypto trading with real-time Upbit prices — 22 tools (spot + futures), 5 resources, 5 prompts",
+  "description": "PexBot simulated spot/futures trading, competitions, portfolios, and AI analytics.",
   "repository": {
     "url": "https://github.com/mikusnuz/pexbot-mcp",
     "source": "github"
   },
-  "version": "2.2.0",
+  "version": "3.0.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@pexbot/mcp",
-      "version": "2.2.0",
+      "version": "3.0.0",
       "transport": { "type": "stdio" },
       "environmentVariables": [
         {
           "name": "PEXBOT_API_KEY",
-          "description": "API key from pex.bot dashboard (pxb_ prefix). Optional — use 'register' tool to create one.",
+          "description": "Scoped trading API key from the PexBot account UI (pxb_ prefix).",
           "isRequired": false,
           "isSecret": true
+        },
+        {
+          "name": "PEXBOT_TOKEN",
+          "description": "User JWT for profile, competition, social, notification, and credential-management tools.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "PEXBOT_TRADING_ACCOUNT",
+          "description": "Optional investment-competition sub-account ID.",
+          "isRequired": false,
+          "isSecret": false
         },
         {
           "name": "PEXBOT_API_URL",

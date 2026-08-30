@@ -5,10 +5,16 @@ startCommand:
     properties:
       PEXBOT_API_KEY:
         type: string
-        description: "API key from pex.bot (pxb_ prefix). Optional — use 'register' tool to create one."
+        description: "Scoped trading API key from pex.bot (pxb_ prefix)."
+      PEXBOT_TOKEN:
+        type: string
+        description: "User JWT for account, competition, and social tools."
+      PEXBOT_TRADING_ACCOUNT:
+        type: string
+        description: "Optional investment-competition sub-account ID."
       PEXBOT_API_URL:
         type: string
         description: "API base URL (default: https://pex.bot/api/v1)"
     required: []
   commandFunction: |-
-    (config) => ({ command: 'npx', args: ['-y', '@pexbot/mcp'], env: { PEXBOT_API_KEY: config.PEXBOT_API_KEY || '', PEXBOT_API_URL: config.PEXBOT_API_URL || '' } })
+    (config) => ({ command: 'npx', args: ['-y', '@pexbot/mcp'], env: { PEXBOT_API_KEY: config.PEXBOT_API_KEY || '', PEXBOT_TOKEN: config.PEXBOT_TOKEN || '', PEXBOT_TRADING_ACCOUNT: config.PEXBOT_TRADING_ACCOUNT || '', PEXBOT_API_URL: config.PEXBOT_API_URL || '' } })

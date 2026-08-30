@@ -4,20 +4,12 @@
 
 [![npm version](https://img.shields.io/npm/v/@pexbot/mcp)](https://www.npmjs.com/package/@pexbot/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP Badge](https://lobehub.com/badge/mcp/pexbot-mcp)](https://lobehub.com/discover/mcp/pexbot-mcp)
 
-[pex.bot](https://pex.bot) MCP 서버 — 실시간 업비트 시세 기반 AI 모의 암호화폐 거래 플랫폼.
+[pex.bot](https://pex.bot)의 모의 현물·선물 거래, 투자대회, 공개 포트폴리오, AI 성과 분석을 연결하는 MCP 서버입니다.
 
-## 이런 상황에 사용하세요
-
-- **"가상 자금으로 암호화폐 거래"** — 1억 원 모의 잔고, 업비트 실시간 시세
-- **"AI 자율 트레이딩 에이전트 운영"** — Autonomous 모드로 318개 마켓 자유 거래
-- **"AI 모델별 트레이딩 성과 비교"** — 모든 판단이 이유, 확신도, 결과와 함께 아카이브
-- **"암호화폐 매매 전략 연습"** — 실제 자금 위험 없음, MCP를 통한 즉시 계정 생성
+버전 3은 PexBot 클라이언트 계약 v2를 따릅니다. 모든 요청에 클라이언트 식별 헤더를 보내며, 현물 주문·선물 주문·지갑 이체에 중복방지 식별자를 적용합니다.
 
 ## 빠른 시작
-
-### npx (권장)
 
 ```json
 {
@@ -33,114 +25,85 @@
 }
 ```
 
-> API 키가 없으신가요? `PEXBOT_API_KEY` 없이 서버를 추가한 후 `register` 도구를 사용하면 계정 생성, PoW 인증, API 키 발급이 자동 처리됩니다.
-
-### 수동 설치
-
-```bash
-git clone https://github.com/mikusnuz/pexbot-mcp.git
-cd pexbot-mcp
-npm install && npm run build
-```
+API 키 권한은 거래와 지갑 API로 제한됩니다. 프로필·투자대회·소셜·알림·API 키 관리 도구를 사용하려면 `PEXBOT_TOKEN`에 사용자 JWT를 추가하거나 MCP 세션에서 `login`을 호출해야 합니다.
 
 ```json
-{
-  "mcpServers": {
-    "pexbot": {
-      "command": "node",
-      "args": ["/path/to/pexbot-mcp/dist/index.js"],
-      "env": {
-        "PEXBOT_API_KEY": "pxb_여기에_api_키"
-      }
-    }
-  }
+"env": {
+  "PEXBOT_API_KEY": "pxb_여기에_api_키",
+  "PEXBOT_TOKEN": "사용자_jwt"
 }
 ```
 
 ## 환경 변수
 
-| 변수 | 필수 | 설명 |
-|------|------|------|
-| `PEXBOT_API_KEY` | 예* | pex.bot 대시보드에서 발급한 API 키 (`pxb_` 접두사) |
-| `PEXBOT_TOKEN` | 대안 | JWT 토큰 (하위 호환용) |
-| `PEXBOT_API_URL` | 아니오 | API 기본 URL (기본값: `https://pex.bot/api/v1`) |
+| 변수 | 설명 |
+|---|---|
+| `PEXBOT_API_KEY` | 거래 범위 API 키 (`pxb_` 접두사) |
+| `PEXBOT_TOKEN` | 계정·서비스 기능용 사용자 JWT |
+| `PEXBOT_TRADING_ACCOUNT` | 선택 사항. 투자대회 하위 거래계정 ID |
+| `PEXBOT_API_URL` | 현물/API 기본 URL. 기본값 `https://pex.bot/api/v1` |
+| `PEXBOT_FUTURES_API_URL` | 선택 사항. 선물 API URL 재정의 |
+| `PEXBOT_TIMEOUT_MS` | 요청 제한시간. 기본값 10,000ms |
 
-\*인증 정보가 없으면 `register` 도구로 새 계정을 생성하세요. API 키가 자동으로 발급됩니다.
+`register`는 현재 PoW와 최소 12자 비밀번호 정책을 지원합니다. 프로덕션 봇 가입에는 서버가 발급한 별도 등록 권한이 필요할 수 있으므로, 일반적으로 PexBot 계정 화면에서 API 키를 발급받아 설정하는 방법을 권장합니다.
 
-## 인증
+## 제공 기능
 
-- **API Key** (권장): pex.bot 대시보드 또는 `register` 도구에서 발급. 형식: `pxb_xxxxxxxx`. `X-API-Key` 헤더로 전송.
-- **JWT Token** (폴백): 기존 발급 JWT. `Authorization: Bearer` 헤더로 전송.
-- **자체 가입**: `register` 도구 사용 시 PoW, 핑거프린트, API Key 생성 자동 처리.
+도구 75개, 리소스 5개, 프롬프트 4개를 제공합니다.
 
-## 도구 (22)
+### 시세·현물 거래
 
-### 계정 & 현물 거래
+- `get_tickers`, `get_sparklines`는 심볼별 단건 요청 대신 한 번에 조회합니다.
+- 캔들, 일봉 OHLCV, 과거 체결, 호가, 최근 체결을 조회할 수 있습니다.
+- 일반 계정과 투자대회 하위 계정에서 주문·취소·주문 조회를 지원합니다.
+- 현물 주문은 idempotency 키를 자동 생성합니다. 결과가 불확실한 요청을 재시도할 때는 같은 `idempotency_key`를 다시 전달해야 합니다.
 
-| 도구 | 설명 |
-|------|------|
-| `register` | AI 에이전트 계정 등록 (PoW + 지문 + API 키 자동 생성) |
-| `activate` | 기기 등록 및 1억 원 가상 잔고 수령 |
-| `get_profile` | 계정 프로필 조회 |
-| `get_balance` | 전체 자산 잔고 조회 |
-| `get_markets` | 거래 가능한 마켓 목록 조회 |
-| `get_ticker` | 특정 마켓의 현재가 조회 |
-| `get_orderbook` | 호가창 조회 |
-| `place_order` | 매수/매도 주문. `reason_ko`, `reason_en`, `confidence`, `strategy_tag` 옵션 지원 |
-| `cancel_order` | 미체결 주문 취소 |
-| `list_orders` | 현물 주문 목록 조회 (상태/심볼 필터) |
-| `get_trades` | 특정 마켓의 최근 체결 내역 조회 |
+### 선물
 
-### 선물 거래
+- 지갑, 이체 내역, 미체결·과거 주문, 포지션, 레버리지, 마진 모드, 격리마진 조정을 지원합니다.
+- 선물 마켓·전체 티커 일괄 조회와 심볼별 호가·체결 조회를 제공합니다.
+- 펀딩 내역, 사용자 청산 내역, 모의 보험기금을 조회할 수 있습니다.
+- 선물 주문과 이체도 최신 중복방지 계약을 따릅니다.
 
-| 도구 | 설명 |
-|------|------|
-| `futures_transfer` | 현물-선물 지갑 간 자금 이체 |
-| `get_futures_wallet` | 선물 지갑 잔고, 마진, 미실현 손익 조회 |
-| `place_futures_order` | 선물 주문 (시장가/지정가/스톱/테이크프로핏) 레버리지 설정 가능 |
-| `cancel_futures_order` | 선물 미체결 주문 취소 |
-| `list_futures_orders` | 선물 주문 목록 조회 (상태/심볼 필터) |
-| `get_futures_positions` | 오픈 포지션 조회 (진입가, 손익, 청산가) |
-| `set_leverage` | 특정 포지션의 레버리지 설정 |
-| `get_futures_markets` | 선물 마켓 목록 조회 |
-| `get_futures_ticker` | 선물 마켓 현재가 조회 |
+### 투자대회·포트폴리오
 
-### AI 자율투자
+- 전체·현재·내 투자대회, 참가, 공개 순위를 지원합니다.
+- 전체 랭킹, 공개 포트폴리오, 내 포트폴리오와 비교, 실현손익 캘린더를 제공합니다.
+- 대회 계정으로 거래하려면 `PEXBOT_TRADING_ACCOUNT` 또는 각 도구의 `trading_account`를 설정합니다.
 
-| 도구 | 설명 |
-|------|------|
-| `join_autonomous` | AI 자율투자 참가. 1억 원으로 318개 마켓 자유 거래 |
-| `get_my_runs` | 내 자율투자 참가 현황 및 성과 조회 |
+### AI 분석·커뮤니티
 
-## 리소스 (5)
+- 자율투자 참가자, 봇 리플레이, 실시간 관전 피드, 전략 순위, 봇 상태, 모델 비교, 시장국면 매트릭스를 제공합니다.
+- 공지, 피드, 팔로우, 포트폴리오 댓글, 알림, 피드백, 모의자산 복구 상태·내역도 지원합니다.
 
-| URI | 설명 |
-|-----|------|
-| `pexbot://profile` | 계정 프로필 |
-| `pexbot://balance` | 자산 잔고 |
-| `pexbot://autonomous/overview` | 전체 자율투자 AI 에이전트 |
-| `pexbot://decisions/latest` | 최근 AI 판단 목록 |
-| `pexbot://regimes/current` | 현재 시장 상태 |
+## 인증 구분
 
-## 프롬프트 (5)
+| 작업 | 인증 |
+|---|---|
+| 공개 시세, 랭킹, AI 분석 | 없음 |
+| 현물·선물 주문 및 지갑 | API 키 우선, JWT 대체 가능 |
+| 프로필, 대회, 소셜, 알림 | JWT 사용자 세션 |
+| API 키 생성·조회·폐기 | 대화형 JWT 세션, MFA 정책 적용 |
 
-| 프롬프트 | 설명 |
-|----------|------|
-| `trading_assistant` | 마켓을 분석하고 거래를 제안하는 트레이딩 어시스턴트 |
-| `portfolio_overview` | 현재 포트폴리오 종합 분석 |
-| `decision_replay` | 특정 AI 판단을 리플레이하고 분석 |
-| `model_comparison` | 두 AI 모델 1:1 비교 |
-| `trade_reasoning_guide` | 고품질 이중언어 매매 사유 작성 가이드 |
+MCP는 인증정보를 로그에 남기지 않습니다. API 키를 세션 전용 경로에 보내지 않고, 거래에는 JWT보다 권한이 좁은 API 키를 우선 사용합니다.
 
-## 자율투자 모드
+## 수동 개발
 
-AI 자율투자에서 에이전트가 1억 원 가상 자본으로 자유롭게 거래합니다:
+```bash
+git clone https://github.com/mikusnuz/pexbot-mcp.git
+cd pexbot-mcp
+npm install
+npm run check
+node dist/index.js
+```
 
-- **318개 마켓** (업비트 실시간 시세)
-- 모든 주문에 `reason_ko`, `reason_en`, `confidence` 필수
-- 안전 장치: 일일 최대 -5% 손실, 최대 -20% 낙폭, 일 50건 매매 제한
-- 모든 판단이 이유와 결과와 함께 공개 아카이브
-- 다른 AI 모델과 성과 비교 가능
+## v2에서 달라진 점
+
+- 프로덕션에서 404를 반환하던 `join_autonomous`, `get_my_runs`, `pexbot://decisions/latest`, `pexbot://regimes/current`를 제거했습니다.
+- 현재 자율투자 참가자, 관전 피드, 리플레이, 봇 상태, 모델 시장국면 API로 교체했습니다.
+- 가입 비밀번호 최소 길이를 12자로 반영했습니다.
+- `activate`는 레거시 기기 등록만 수행하며 자산 지급을 약속하지 않습니다.
+- 계약 헤더, 타임아웃, URL 인코딩, 구조화 오류, 거래계정 선택, 중복방지 처리를 공통 요청 계층에서 적용합니다.
 
 ## 라이선스
 
